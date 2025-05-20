@@ -24,3 +24,9 @@ io.on('connection', (socket) => {
     })
 
 })
+
+io.on('connection', (socket) => {
+    socket.on('media', (msg) => {
+        socket.broadcast.emit('media', msg);
+    });
+});

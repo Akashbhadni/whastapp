@@ -50,5 +50,51 @@ function scrollToBottom() {
     messageArea.scrollTop = messageArea.scrollHeight
 }
 
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function() {
+        const base64Data = reader.result;
+        const fileType = file.type.startsWith('image') ? 'image' : 'video';
+
+        const msg = {
+            user: name,
+            type: fileType,
+            data: base64Data
+        };
+
+        appendMessage(msg, 'outgoing');
+        socket.emit('media', msg);
+    };
+    reader.readAsDataURL(file);
+});
+
+socket.on('media', (msg) => {
+    appendMessage(msg, 'incoming');
+});
+
+function appendMessage(msg, type) {
+    const mainDiv = document.createElement('div');
+    mainDiv.classList.add(type, 'message');
+
+    let content = `<h4>${msg.user}</h4>`;
+
+    if (msg.type === 'image') {
+        content += `<img src="${msg.data}" alt="Image" style="max-width: 200px;" />`;
+    } else if (msg.type === 'video') {
+        content += `<video controls style="max-width: 200px;">
+                        <source src="${msg.data}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>`;
+    } else {
+        content += `<p>${msg.message}</p>`;
+    }
+
+    mainDiv.innerHTML = content;
+    messageArea.appendChild(mainDiv);
+    scrollToBottom();
+}
 
 
